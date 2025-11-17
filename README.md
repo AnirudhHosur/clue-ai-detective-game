@@ -1,55 +1,57 @@
-# Next.js & HeroUI Template
+# Clue AI Detective Game
 
-This is a template for creating applications using Next.js 14 (pages directory) and HeroUI (v2).
+AI-assisted mystery generator where players craft custom detective cases, gather visual evidence, and share interactive briefs. The app uses Google Gemini for story design, Replicate for image clues, and a sleek HeroUI/Tailwind interface to present each case like a briefing dossier.
 
-[Try it on CodeSandbox](https://githubbox.com/heroui-inc/next-pages-template)
+## Features
 
-> Note: Since Next.js 14, the pages router is recommend migrating to the [new App Router](https://nextjs.org/docs/app) to leverage React's latest features
->
-> Read more: [Pages Router](https://nextjs.org/docs/pages)
+- Dynamic case creation flow that guides users from suspect selection to final case summary
+- Google Gemini prompt orchestration for story outlines, motives, alibis, and twist reveals
+- Replicate-powered clue imagery plus a custom loader for asynchronous image jobs
+- Persistent game saving via API routes and Drizzle schema ready for Neon/Postgres
+- Dashboard, pricing, and docs pages for showcasing the product experience
 
-## Technologies Used
+## Tech Stack
 
-- [Next.js 14](https://nextjs.org/docs/getting-started)
-- [HeroUI](https://heroui.com)
-- [Tailwind CSS](https://tailwindcss.com)
-- [Tailwind Variants](https://tailwind-variants.org)
-- [TypeScript](https://www.typescriptlang.org)
-- [Framer Motion](https://www.framer.com/motion)
-- [next-themes](https://github.com/pacocoursey/next-themes)
+- Next.js 14 (Pages Router) with TypeScript
+- HeroUI v2, Tailwind CSS, Tailwind Variants, Framer Motion, next-themes
+- Google Gemini + Replicate APIs for AI content and media
+- Drizzle ORM with Neon/Postgres-ready migrations
 
-## How to Use
-
-To create a new project based on this template using `create-next-app`, run the following command:
+## Getting Started
 
 ```bash
-npx create-next-app -e https://github.com/heroui-inc/next-pages-template
-```
-
-### Install dependencies
-
-You can use one of them `npm`, `yarn`, `pnpm`, `bun`, Example using `npm`:
-
-```bash
+# install dependencies
 npm install
-```
 
-### Run the development server
-
-```bash
+# start dev server
 npm run dev
 ```
 
-### Setup pnpm (optional)
+Visit `http://localhost:3000` to open the experience. The create flow lives under `/play/create`.
 
-If you are using `pnpm`, you need to add the following code to your `.npmrc` file:
+## Environment Variables
 
-```bash
-public-hoist-pattern[]=*@heroui/*
+Create a `.env.local` file with the following keys:
+
+```
+GEMINI_API_KEY=xxxxxxxx
+REPLICATE_API_KEY=xxxxxxxx   # or REPLICATE_API_TOKEN
+DATABASE_URL=postgres://user:pass@host/db    # used by Drizzle + Neon
 ```
 
-After modifying the `.npmrc` file, you need to run `pnpm install` again to ensure that the dependencies are installed correctly.
+Use `npm run test-env` (see `pages/api/testEnv.ts`) or hit `/api/testEnv` locally to verify that the keys are loaded before deploying.
+
+## Available Scripts
+
+- `npm run dev` – start Next.js locally
+- `npm run build` – production build
+- `npm run start` – serve the production build
+- `npm run lint` – lint with eslint
+
+## Deployment
+
+The project is optimized for Vercel. Set the same environment variables in the Vercel dashboard, connect the GitHub repo, and enable automatic deployments from `main`. Neon/Postgres connection details should be stored as encrypted env vars.
 
 ## License
 
-Licensed under the [MIT license](https://github.com/heroui-inc/next-pages-template/blob/main/LICENSE).
+This project is released under the [MIT License](LICENSE).
