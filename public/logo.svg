@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Base hat brim -->
+  <ellipse cx="128" cy="170" rx="110" ry="30" fill="#6B46C1"/>
+  <!-- Hat crown -->
+  <path d="M40 170 C40 110 80 60 128 60 C176 60 216 110 216 170 L40 170 Z" fill="#805AD5"/>
+  <!-- Hat band -->
+  <rect x="60" y="135" width="136" height="20" fill="#9F7AEA"/>
+  <!-- Mystery accent: a small magnifying glass handle at side -->
+  <circle cx="180" cy="118" r="12" stroke="white" stroke-width="6" fill="none"/>
+  <line x1="188" y1="126" x2="200" y2="138" stroke="white" stroke-width="6" stroke-linecap="round"/>
+</svg>
