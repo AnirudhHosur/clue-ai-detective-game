@@ -31,7 +31,9 @@ export default async function handler(
       imagePrompt,
       mainCharacters,
       gameContent, // AI-generated game content (JSON string)
-      generatedImageUrl, // URL of the generated image
+      generatedImageUrl, // URL of the generated image (kept for reference)
+      imageBase64, // Base64 encoded image to add to images array
+      images, // Array of base64 images (if passing multiple)
     } = req.body;
 
     // Validate required fields
@@ -75,6 +77,15 @@ export default async function handler(
     const chapters = Array.isArray(parsedGameData.chapters) ? parsedGameData.chapters : [];
     const possibleEndings = Array.isArray(parsedGameData.possibleEndings) ? parsedGameData.possibleEndings : [];
 
+    // Prepare images array - add new base64 image if provided
+    let imagesArray: string[] = [];
+    if (Array.isArray(images)) {
+      imagesArray = images;
+    } else if (imageBase64 && typeof imageBase64 === "string") {
+      // If a single base64 image is provided, add it to the array
+      imagesArray = [imageBase64];
+    }
+
     // Insert game into database
     const [insertedGame] = await db
       .insert(games)
@@ -92,6 +103,7 @@ export default async function handler(
         chapters: chapters,
         possibleEndings: possibleEndings,
         generatedImageUrl: generatedImageUrl || null,
+        images: imagesArray,
         status: "draft",
       })
       .returning();

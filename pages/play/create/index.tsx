@@ -7,6 +7,7 @@ import { Listbox, ListboxItem } from "@heroui/listbox";
 import { Spinner } from "@heroui/spinner";
 import { GetStaticProps } from "next";
 import { useState } from "react";
+import { useRouter } from "next/router";
 
 type CreateGameProps = {
   prompt: string;
@@ -42,6 +43,7 @@ const difficultyOptions = [
 ];
 
 export default function CreateGame({ prompt }: CreateGameProps) {
+  const router = useRouter();
 
   // Form state, each maps to the DB schema!
   const [title, setTitle] = useState("");
@@ -108,7 +110,6 @@ export default function CreateGame({ prompt }: CreateGameProps) {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Unknown AI error");
-      console.log("Generated Game:", data.result);
       
       // Parse the game content to extract details for image generation
       let parsedGameData: any = {};
@@ -143,6 +144,7 @@ export default function CreateGame({ prompt }: CreateGameProps) {
       
       // Generate image using the prompt
       let generatedImageUrl = null;
+      let imageBase64 = null;
       try {
         const imageResponse = await fetch("/api/generateImage", {
           method: "POST",
@@ -152,7 +154,7 @@ export default function CreateGame({ prompt }: CreateGameProps) {
         const imageData = await imageResponse.json();
         if (imageResponse.ok && imageData.imageUrl) {
           generatedImageUrl = imageData.imageUrl;
-          console.log("Generated Image URL:", generatedImageUrl);
+          imageBase64 = imageData.imageBase64 || null;
         } else {
           console.warn("Image generation failed:", imageData.error);
         }
@@ -161,14 +163,21 @@ export default function CreateGame({ prompt }: CreateGameProps) {
         // Continue without image if generation fails
       }
       
-      // Save game to database with image URL
-      await saveGameinDB(data.result, generatedImageUrl);
+      // Save game to database with image URL and base64
+      const saveResult = await saveGameinDB(data.result, generatedImageUrl, imageBase64);
+      
+      // Log success at the end
+      if (generatedImageUrl) {
+        console.log("Game created successfully with image");
+      }
       
       // Close modal after successful save
       setLoading(false);
       
-      // Optional: Show success message or redirect
-      // You can add a success notification here
+      // Redirect to view game page
+      if (saveResult?.dbId) {
+        router.push(`/view-game/${saveResult.dbId}`);
+      }
     } catch (error) {
       console.error("Error generating game:", error);
       setLoading(false);
@@ -176,7 +185,7 @@ export default function CreateGame({ prompt }: CreateGameProps) {
     }
   };
 
-  const saveGameinDB = async (gameContent: string, generatedImageUrl: string | null = null) => {
+  const saveGameinDB = async (gameContent: string, generatedImageUrl: string | null = null, imageBase64: string | null = null) => {
     const response = await fetch("/api/saveGame", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -189,7 +198,8 @@ export default function CreateGame({ prompt }: CreateGameProps) {
         imagePrompt,
         mainCharacters,
         gameContent, // AI-generated game content
-        generatedImageUrl, // URL of the generated image
+        generatedImageUrl, // URL of the generated image (for reference, expires after 2 hours)
+        imageBase64, // Base64 encoded image to store permanently
       }),
     });
     const data = await response.json();

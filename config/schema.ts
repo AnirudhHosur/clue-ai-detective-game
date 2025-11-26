@@ -11,6 +11,7 @@ export const games = pgTable("games", {
   difficulty: varchar("difficulty", { length: 20 }).default("medium"), // easy, medium, hard
   imagePrompt: text("image_prompt"), // optional: for AI-generated cover
   generatedImageUrl: text("generated_image_url"), // URL of the AI-generated game image
+  images: jsonb("images").default([]), // Array of base64 encoded images: ["data:image/jpeg;base64,...", ...]
   status: varchar("status", { length: 20 }).default("draft"), // draft, active, finished
   // AI-generated game content fields
   premise: text("premise"), // The game's premise/story
