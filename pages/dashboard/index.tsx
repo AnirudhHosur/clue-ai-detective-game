@@ -6,6 +6,7 @@ import { Link } from "@heroui/link";
 import { useUser } from "@clerk/nextjs";
 import { HeartFilledIcon, SearchIcon } from "@/components/icons";
 import { useUserContext } from "@/contexts/UserContext";
+import { motion } from "framer-motion";
 
 // Define the Game type based on our schema
 interface Game {
@@ -59,42 +60,69 @@ export default function Dashboard() {
     <DefaultLayout>
       <section className="flex flex-col gap-8 py-8 md:py-10">
         {/* Credits Banner */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <motion.div 
+          className="bg-gradient-to-r from-purple-600 to-indigo-700 rounded-2xl p-6 text-white shadow-xl"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-4">
-              <div className="bg-white/20 p-3 rounded-full">
-                <HeartFilledIcon className="text-2xl" />
+              <div className="bg-white/20 p-4 rounded-full">
+                <HeartFilledIcon className="text-3xl" />
               </div>
               <div>
                 <h2 className="text-2xl font-bold">Your Credits</h2>
                 <p className="opacity-90">Create amazing AI detective games</p>
               </div>
             </div>
-            <div className="bg-white/20 px-6 py-3 rounded-xl">
-              <p className="text-3xl font-bold">{dbUser?.credits || 0} Credits</p>
-              <p className="text-sm opacity-90">1 credit = 1 game</p>
+            <div className="flex flex-col items-center">
+              <div className="bg-white/20 px-8 py-4 rounded-xl mb-2">
+                <p className="text-4xl font-bold">{dbUser?.credits || 0}</p>
+              </div>
+              <p className="text-sm opacity-90">credits available</p>
             </div>
           </div>
           
-          <div className="mt-4 flex flex-wrap gap-3">
-            <Button 
-              color="secondary" 
-              variant="flat" 
-              as={Link}
-              href="/play/create"
-            >
-              Create New Game
-            </Button>
-            <Button 
-              color="secondary" 
-              variant="flat"
-              as={Link}
-              href="/pricing"
-            >
-              Buy More Credits
-            </Button>
+          <div className="mt-6 flex flex-wrap gap-4 justify-center">
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button 
+                color="secondary" 
+                variant="shadow" 
+                size="lg"
+                as={Link}
+                href="/play/create"
+                isDisabled={!dbUser || dbUser.credits <= 0}
+                className="font-bold px-6"
+              >
+                Create New Game
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button 
+                color="success" 
+                variant="shadow"
+                size="lg"
+                as={Link}
+                href="/pricing"
+                className="font-bold px-6 bg-gradient-to-r from-green-500 to-emerald-600"
+              >
+                Buy More Credits
+              </Button>
+            </motion.div>
           </div>
-        </div>
+          
+          {(!dbUser || dbUser.credits <= 0) && (
+            <motion.div 
+              className="mt-4 text-yellow-200 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <p>You don't have enough credits to create a new game. Please purchase more credits.</p>
+            </motion.div>
+          )}
+        </motion.div>
 
         {/* Games Section */}
         <div>
@@ -112,21 +140,53 @@ export default function Dashboard() {
               <SearchIcon className="mx-auto text-4xl text-default-300 mb-4" />
               <h3 className="text-xl font-semibold mb-2">No games yet</h3>
               <p className="text-default-500 mb-6">Create your first AI detective game to get started</p>
-              <Button 
-                color="primary" 
-                size="lg"
-                as={Link}
-                href="/play/create"
-              >
-                Create Your First Game
-              </Button>
+              
+              {(!dbUser || dbUser.credits <= 0) ? (
+                <div className="flex flex-col items-center gap-4">
+                  <Button 
+                    color="primary" 
+                    size="lg"
+                    as={Link}
+                    href="/play/create"
+                    isDisabled
+                    className="font-bold"
+                  >
+                    Create Your First Game
+                  </Button>
+                  <Button 
+                    color="success" 
+                    variant="shadow"
+                    as={Link}
+                    href="/pricing"
+                    className="font-bold bg-gradient-to-r from-green-500 to-emerald-600"
+                  >
+                    Buy More Credits
+                  </Button>
+                </div>
+              ) : (
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button 
+                    color="primary" 
+                    size="lg"
+                    as={Link}
+                    href="/play/create"
+                    className="font-bold px-8 py-6 text-lg"
+                  >
+                    Create Your First Game
+                  </Button>
+                </motion.div>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {games.map((game) => (
-                <div 
-                  key={game.id} 
-                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+                <motion.div
+                  key={game.id}
+                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
+                  whileHover={{ y: -5 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
                 >
                   {game.generatedImageUrl ? (
                     <div className="h-48 bg-gray-200 dark:bg-gray-700 relative">
@@ -135,36 +195,36 @@ export default function Dashboard() {
                         alt={game.title} 
                         className="w-full h-full object-cover"
                       />
-                      <div className="absolute top-3 right-3 bg-primary text-white text-xs font-bold px-2 py-1 rounded-full">
+                      <div className="absolute top-3 right-3 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded-full">
                         {game.status}
                       </div>
                     </div>
                   ) : (
-                    <div className="h-48 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 flex items-center justify-center relative">
-                      <div className="text-5xl font-bold text-primary/20">
+                    <div className="h-48 bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900 dark:to-indigo-900 flex items-center justify-center relative">
+                      <div className="text-6xl font-bold text-purple-300 dark:text-purple-700">
                         {game.title.charAt(0)}
                       </div>
-                      <div className="absolute top-3 right-3 bg-primary text-white text-xs font-bold px-2 py-1 rounded-full">
+                      <div className="absolute top-3 right-3 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded-full">
                         {game.status}
                       </div>
                     </div>
                   )}
                   
                   <div className="p-5">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white truncate">
                         {game.title}
                       </h3>
                     </div>
                     
                     <div className="flex flex-wrap gap-2 mb-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100">
                         {game.genre}
                       </span>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100">
                         {game.tone}
                       </span>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
                         {game.difficulty}
                       </span>
                     </div>
@@ -177,17 +237,20 @@ export default function Dashboard() {
                       <span className="text-xs text-default-400">
                         {new Date(game.createdAt).toLocaleDateString()}
                       </span>
-                      <Button 
-                        color="primary" 
-                        size="sm"
-                        as={Link}
-                        href={`/view-game/${game.id}`}
-                      >
-                        View Game
-                      </Button>
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button 
+                          color="primary" 
+                          size="sm"
+                          as={Link}
+                          href={`/view-game/${game.id}`}
+                          className="font-medium"
+                        >
+                          View Game
+                        </Button>
+                      </motion.div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}

@@ -8,6 +8,9 @@ import { fontSans, fontMono } from "@/config/fonts";
 import "@/styles/globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { UserProvider } from "@/contexts/UserContext";
+import { PayPalScriptProvider } from "@paypal/react-paypal-js";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -18,9 +21,19 @@ export default function App({ Component, pageProps }: AppProps) {
     }}>
       <HeroUIProvider navigate={router.push}>
         <NextThemesProvider attribute="class" defaultTheme="light">
-          <UserProvider>
-            <Component {...pageProps} />
-          </UserProvider>
+          <PayPalScriptProvider options={{ 
+            clientId: process.env.PAYPAL_CLIENT_ID || "test",
+            currency: "USD",
+            intent: "capture",
+            vault: false,
+            components: "buttons",
+            "data-sdk-integration-source": "react-paypal-js"
+          }}>
+            <UserProvider>
+              <Component {...pageProps} />
+              <ToastContainer />
+            </UserProvider>
+          </PayPalScriptProvider>
         </NextThemesProvider>
       </HeroUIProvider>
     </ClerkProvider >

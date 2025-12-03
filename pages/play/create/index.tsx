@@ -9,6 +9,7 @@ import { GetStaticProps } from "next";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { useUserContext } from "@/contexts/UserContext";
+import { motion } from "framer-motion";
 
 type CreateGameProps = {
   prompt: string;
@@ -53,7 +54,6 @@ export default function CreateGame({ prompt }: CreateGameProps) {
   const [tone, setTone] = useState(toneOptions[0]);
   const [plotSeed, setPlotSeed] = useState("");
   const [difficulty, setDifficulty] = useState("Medium");
-  const [imagePrompt, setImagePrompt] = useState("");
   const [mainCharacters, setMainCharacters] = useState([
     { name: "", role: "", traits: "" },
   ]);
@@ -82,7 +82,7 @@ export default function CreateGame({ prompt }: CreateGameProps) {
     // Map state objects to payload, call your mutation (not included)
     // Example:
     // createGameMutation.mutate({
-    //   title, genre, tone, plotSeed, difficulty, imagePrompt, mainCharacters
+    //   title, genre, tone, plotSeed, difficulty, mainCharacters
     // })
   };
 
@@ -206,7 +206,6 @@ export default function CreateGame({ prompt }: CreateGameProps) {
         tone,
         plotSeed,
         difficulty,
-        imagePrompt,
         mainCharacters,
         gameContent, // AI-generated game content
         generatedImageUrl, // URL of the generated image (for reference, expires after 2 hours)
@@ -245,37 +244,52 @@ export default function CreateGame({ prompt }: CreateGameProps) {
 
   return (
     <DefaultLayout>
-      <section className="flex flex-col items-center justify-center min-h-[80vh] py-10 bg-gradient-to-br from-blue-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        <div className="w-full max-w-2xl bg-white dark:bg-gray-900/60 rounded-xl shadow-lg px-6 py-8 space-y-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 text-center">
-            Create Your Mystery Game
-          </h1>
-          <p className="text-base text-gray-600 dark:text-gray-300 text-center mb-1">
-            Just the essentials. Fill the details below and let the AI do the rest!
-          </p>
+      <section className="flex flex-col items-center justify-center min-h-[80vh] py-10 bg-gradient-to-br from-purple-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <motion.div 
+          className="w-full max-w-2xl bg-white dark:bg-gray-900/60 rounded-2xl shadow-xl px-6 py-8 space-y-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Create Your Mystery Game
+            </h1>
+            <p className="text-base text-gray-600 dark:text-gray-300">
+              Just the essentials. Fill the details below and let the AI do the rest!
+            </p>
+          </div>
+          
           {
             loading && (
-              <Spinner classNames={{ label: "text-foreground mt-4" }} label="Generating Suspense for you..." variant="spinner" />
+              <div className="flex flex-col items-center">
+                <Spinner classNames={{ label: "text-foreground mt-4" }} label="Generating Suspense for you..." variant="spinner" size="lg" />
+              </div>
             )
           }
           
           {/* Credits display */}
           {!userLoading && dbUser && (
-            <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4">
+            <motion.div 
+              className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl p-4 text-white"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                <span className="text-sm font-medium">
                   Available Credits
                 </span>
-                <span className="text-lg font-bold text-blue-600 dark:text-blue-300">
+                <span className="text-xl font-bold">
                   {dbUser.credits}
                 </span>
               </div>
               {dbUser.credits <= 0 && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-2">
+                <p className="text-sm text-yellow-200 mt-2">
                   You don't have enough credits to create a game. Please purchase more credits.
                 </p>
               )}
-            </div>
+            </motion.div>
           )}
           
           <form className="space-y-6" onSubmit={handleSubmit}>
@@ -289,6 +303,7 @@ export default function CreateGame({ prompt }: CreateGameProps) {
               onChange={(e) => setTitle(e.target.value)}
               required
               className="w-full"
+              size="lg"
             />
 
             {/* Genre */}
@@ -342,6 +357,7 @@ export default function CreateGame({ prompt }: CreateGameProps) {
               onChange={(e) => setPlotSeed(e.target.value)}
               required
               className="w-full"
+              size="lg"
             />
 
             {/* Difficulty */}
@@ -364,17 +380,6 @@ export default function CreateGame({ prompt }: CreateGameProps) {
               </Listbox>
             </div>
 
-            {/* Image prompt (optional) */}
-            <Input
-              label="Image Prompt (optional)"
-              name="imagePrompt"
-              aria-label="Image Prompt"
-              placeholder="Detective silhouette in moonlight"
-              value={imagePrompt}
-              onChange={(e) => setImagePrompt(e.target.value)}
-              className="w-full"
-            />
-
             {/* Main Characters: dynamic JSON array */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
@@ -383,9 +388,15 @@ export default function CreateGame({ prompt }: CreateGameProps) {
               <p className="text-xs text-gray-400 mb-2">
                 Add key characters (name, role, traits)
               </p>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {mainCharacters.map((char, idx) => (
-                  <div key={idx} className="flex gap-2 items-center">
+                  <motion.div 
+                    key={idx} 
+                    className="flex gap-2 items-center"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                  >
                     <Input
                       name={`character-name-${idx}`}
                       placeholder="Name"
@@ -416,7 +427,8 @@ export default function CreateGame({ prompt }: CreateGameProps) {
                     {mainCharacters.length > 1 && (
                       <Button
                         type="button"
-                        variant="bordered"
+                        variant="flat"
+                        color="danger"
                         size="sm"
                         className="ml-2"
                         onClick={() => removeCharacter(idx)}
@@ -424,11 +436,12 @@ export default function CreateGame({ prompt }: CreateGameProps) {
                         Remove
                       </Button>
                     )}
-                  </div>
+                  </motion.div>
                 ))}
                 <Button
                   type="button"
                   variant="flat"
+                  color="secondary"
                   size="sm"
                   className="mt-2"
                   onClick={addCharacter}
@@ -439,42 +452,48 @@ export default function CreateGame({ prompt }: CreateGameProps) {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-4 justify-end pt-2">
-              <Button
-                variant="bordered"
-                size="md"
-                type="reset"
-                onClick={() => {
-                  setTitle("");
-                  setGenre(genreOptions[0]);
-                  setTone(toneOptions[0]);
-                  setPlotSeed("");
-                  setDifficulty("Medium");
-                  setImagePrompt("");
-                  setMainCharacters([{ name: "", role: "", traits: "" }]);
-                }}
-              >
-                Reset
-              </Button>
-              <div className="flex flex-col items-end">
+            <div className="flex flex-col items-center gap-4 pt-4">
+              <div className="flex items-center gap-4">
                 <Button
-                  type="submit"
-                  size="md"
-                  color="primary"
-                  className="font-bold"
-                  onClick={GenerateGame}
-                  disabled={userLoading || !dbUser || dbUser.credits <= 0}
+                  variant="bordered"
+                  size="lg"
+                  type="reset"
+                  onClick={() => {
+                    setTitle("");
+                    setGenre(genreOptions[0]);
+                    setTone(toneOptions[0]);
+                    setPlotSeed("");
+                    setDifficulty("Medium");
+                    setMainCharacters([{ name: "", role: "", traits: "" }]);
+                  }}
+                  className="px-6"
                 >
-                  Create Game
+                  Reset
                 </Button>
-                <span className="text-xs text-gray-500 mt-1">
-                  1 credit per game
-                </span>
+                
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    type="submit"
+                    size="lg"
+                    color="secondary"
+                    variant="shadow"
+                    className="font-bold px-8 py-6 text-lg"
+                    onClick={GenerateGame}
+                    disabled={userLoading || !dbUser || dbUser.credits <= 0}
+                  >
+                    Create Game
+                  </Button>
+                </motion.div>
               </div>
+              
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                1 credit per game
+              </span>
+              
               <CustomLoader isLoading={loading} />
             </div>
           </form>
-        </div>
+        </motion.div>
       </section>
     </DefaultLayout>
   );
