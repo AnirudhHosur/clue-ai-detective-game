@@ -8,9 +8,11 @@ import { title, subtitle } from "@/components/primitives";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import { GithubIcon, SearchIcon } from "@/components/icons";
 import DefaultLayout from "@/layouts/default";
-
+import { useUserContext } from "@/contexts/UserContext";
 
 export default function IndexPage() {
+  const { user: dbUser, isLoading: userLoading } = useUserContext();
+
   return (
     <DefaultLayout>
       <main className="container mx-auto px-6 py-12">
@@ -47,6 +49,12 @@ export default function IndexPage() {
               </SignInButton>
             </SignedOut>
           </div>
+          
+          {!userLoading && dbUser && (
+            <div className="mt-4 text-sm text-default-500">
+              Welcome back! You have <span className="font-bold">{dbUser.credits}</span> credits remaining.
+            </div>
+          )}
         </section>
 
         {/* Features / How it works */}

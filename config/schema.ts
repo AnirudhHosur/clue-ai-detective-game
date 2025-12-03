@@ -1,4 +1,4 @@
-import { pgTable, serial, text, varchar, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, varchar, jsonb, timestamp, integer } from "drizzle-orm/pg-core";
 
 export const games = pgTable("games", {
   id: serial("id").primaryKey(),
@@ -19,4 +19,15 @@ export const games = pgTable("games", {
   chapters: jsonb("chapters").default([]), // Array of chapter objects
   possibleEndings: jsonb("possible_endings").default([]), // Array of ending objects
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// New users table
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  clerkUserId: text("clerk_user_id").notNull().unique(), // Clerk user ID (format: user_xxxxx)
+  username: varchar("username", { length: 50 }),
+  email: varchar("email", { length: 100 }).notNull(),
+  credits: integer("credits").default(2),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

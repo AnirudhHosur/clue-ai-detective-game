@@ -8,6 +8,7 @@ import { Spinner } from "@heroui/spinner";
 import { GetStaticProps } from "next";
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { useUserContext } from "@/contexts/UserContext";
 
 type CreateGameProps = {
   prompt: string;
@@ -44,6 +45,7 @@ const difficultyOptions = [
 
 export default function CreateGame({ prompt }: CreateGameProps) {
   const router = useRouter();
+  const { user: dbUser, isLoading: userLoading, refreshUser } = useUserContext();
 
   // Form state, each maps to the DB schema!
   const [title, setTitle] = useState("");
@@ -87,6 +89,12 @@ export default function CreateGame({ prompt }: CreateGameProps) {
   const [loading, setLoading] = useState(false);
 
   const GenerateGame = async () => {
+    // Check if user has enough credits
+    if (!dbUser || dbUser.credits <= 0) {
+      alert("You don't have enough credits to create a game!");
+      return;
+    }
+
     setLoading(true);
     const mcInput = mainCharacters.map((c) => ({
       name: c.name || "Unknown",
@@ -166,6 +174,9 @@ export default function CreateGame({ prompt }: CreateGameProps) {
       // Save game to database with image URL and base64
       const saveResult = await saveGameinDB(data.result, generatedImageUrl, imageBase64);
       
+      // Deduct one credit from user
+      await deductCredit();
+      
       // Log success at the end
       if (generatedImageUrl) {
         console.log("Game created successfully with image");
@@ -209,6 +220,28 @@ export default function CreateGame({ prompt }: CreateGameProps) {
     return data;
   };
 
+  const deductCredit = async () => {
+    if (!dbUser) return;
+    
+    try {
+      const newCredits = dbUser.credits - 1;
+      const response = await fetch("/api/updateUserCredits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ credits: newCredits }),
+      });
+      
+      if (response.ok) {
+        // Refresh user context to reflect new credit balance
+        await refreshUser();
+      } else {
+        console.error("Failed to update credits");
+      }
+    } catch (error) {
+      console.error("Error deducting credits:", error);
+    }
+  };
+
 
   return (
     <DefaultLayout>
@@ -225,6 +258,26 @@ export default function CreateGame({ prompt }: CreateGameProps) {
               <Spinner classNames={{ label: "text-foreground mt-4" }} label="Generating Suspense for you..." variant="spinner" />
             )
           }
+          
+          {/* Credits display */}
+          {!userLoading && dbUser && (
+            <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                  Available Credits
+                </span>
+                <span className="text-lg font-bold text-blue-600 dark:text-blue-300">
+                  {dbUser.credits}
+                </span>
+              </div>
+              {dbUser.credits <= 0 && (
+                <p className="text-sm text-red-600 dark:text-red-400 mt-2">
+                  You don't have enough credits to create a game. Please purchase more credits.
+                </p>
+              )}
+            </div>
+          )}
+          
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Title */}
             <Input
@@ -284,7 +337,7 @@ export default function CreateGame({ prompt }: CreateGameProps) {
               name="plotSeed"
               aria-label="Plot Seed"
               rows={4}
-              placeholder="What’s the core mystery, suspects, setting, or twist?"
+              placeholder="What's the core mystery, suspects, setting, or twist?"
               value={plotSeed}
               onChange={(e) => setPlotSeed(e.target.value)}
               required
@@ -403,15 +456,21 @@ export default function CreateGame({ prompt }: CreateGameProps) {
               >
                 Reset
               </Button>
-              <Button
-                type="submit"
-                size="md"
-                color="primary"
-                className="font-bold"
-                onClick={GenerateGame}
-              >
-                Create Game
-              </Button>
+              <div className="flex flex-col items-end">
+                <Button
+                  type="submit"
+                  size="md"
+                  color="primary"
+                  className="font-bold"
+                  onClick={GenerateGame}
+                  disabled={userLoading || !dbUser || dbUser.credits <= 0}
+                >
+                  Create Game
+                </Button>
+                <span className="text-xs text-gray-500 mt-1">
+                  1 credit per game
+                </span>
+              </div>
               <CustomLoader isLoading={loading} />
             </div>
           </form>
