@@ -2,10 +2,14 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getAuth } from "@clerk/nextjs/server";
 import { PayPalService } from "@/services/paypalService";
 
+/**
+ * API endpoint to update user credits after successful PayPal payment
+ */
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // Only allow POST requests
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" });
     return;
@@ -22,6 +26,7 @@ export default async function handler(
 
     const { creditsToAdd } = req.body;
 
+    // Validate creditsToAdd parameter
     if (creditsToAdd === undefined || creditsToAdd <= 0) {
       res.status(400).json({ error: "Valid creditsToAdd value is required" });
       return;
@@ -35,6 +40,7 @@ export default async function handler(
       return;
     }
 
+    // Return success response
     res.status(200).json({
       success: true,
       message: `Successfully added ${creditsToAdd} credits`,

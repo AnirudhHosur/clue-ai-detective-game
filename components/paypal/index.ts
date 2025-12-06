@@ -1,0 +1,1 @@
+export { default as PayPalCheckout } from './PayPalCheckout';

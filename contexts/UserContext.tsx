@@ -3,6 +3,10 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useUser } from '@clerk/nextjs';
 
+// ======================
+// Type Definitions
+// ======================
+
 interface User {
   id: number;
   clerkUserId: string;
@@ -19,13 +23,28 @@ interface UserContextType {
   refreshUser: () => Promise<void>;
 }
 
+// ======================
+// Context Setup
+// ======================
+
 const UserContext = createContext<UserContextType | undefined>(undefined);
+
+// ======================
+// Provider Component
+// ======================
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const { user: clerkUser, isLoaded } = useUser();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // ======================
+  // Helper Functions
+  // ======================
+
+  /**
+   * Fetch existing user or create new user in database
+   */
   const fetchOrCreateUser = async () => {
     if (!isLoaded || !clerkUser) {
       setIsLoading(false);
@@ -61,6 +80,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  /**
+   * Refresh user data from API
+   */
   const refreshUser = async () => {
     if (!isLoaded || !clerkUser) return;
 
@@ -75,9 +97,17 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // ======================
+  // Effects
+  // ======================
+
   useEffect(() => {
     fetchOrCreateUser();
   }, [clerkUser, isLoaded]);
+
+  // ======================
+  // Render
+  // ======================
 
   return (
     <UserContext.Provider value={{ user, isLoading, refreshUser }}>
@@ -85,6 +115,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     </UserContext.Provider>
   );
 };
+
+// ======================
+// Hook
+// ======================
 
 export const useUserContext = () => {
   const context = useContext(UserContext);
