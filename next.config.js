@@ -4,6 +4,9 @@ const nextConfig = {
   env: {
     PAYPAL_CLIENT_ID: process.env.PAYPAL_CLIENT_ID,
   },
+  images: {
+    domains: ['replicate.delivery'],
+  },
 }
 
 module.exports = nextConfig
