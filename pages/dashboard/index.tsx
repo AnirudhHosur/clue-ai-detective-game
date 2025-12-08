@@ -7,6 +7,7 @@ import { useUser } from "@clerk/nextjs";
 import { HeartFilledIcon, SearchIcon } from "@/components/icons";
 import { useUserContext } from "@/contexts/UserContext";
 import { motion } from "framer-motion";
+import { useRouter } from "next/router";
 
 // Define the Game type based on our schema
 interface Game {
@@ -18,43 +19,93 @@ interface Game {
   mainCharacters: Array<{ name: string; role: string; traits: string }>;
   plotSeed: string;
   difficulty: string;
+  imagePrompt: string;
+  generatedImageUrl: string | null;
+  images: string[]; // base64 encoded images
   status: string;
-  createdAt: string;
-  premise?: string;
-  setting?: any;
-  chapters?: Array<any>;
-  possibleEndings?: Array<any>;
-  generatedImageUrl?: string;
+  premise: string;
+  setting: {
+    location: string;
+    description: string;
+  };
+  chapters: Array<{
+    title: string;
+    description: string;
+    clues: string[];
+    suspects: Array<{
+      name: string;
+      role: string;
+      alibi: string;
+      motive: string;
+      secret: string;
+    }>;
+  }>;
+  possibleEndings: Array<{
+    outcome: string;
+    description: string;
+  }>;
+  createdAt: Date;
 }
 
-export default function Dashboard() {
-  const { user: clerkUser, isLoaded } = useUser();
-  const { user: dbUser, isLoading: userLoading } = useUserContext();
+export default function DashboardPage() {
+  const router = useRouter();
+  const { user, isLoaded, isSignedIn } = useUser();
+  const { user: userData, isLoading } = useUserContext();
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch user's games
+  // Redirect to sign in if not authenticated
   useEffect(() => {
-    if (!isLoaded || userLoading) return;
+    if (isLoaded && !isSignedIn) {
+      router.push('/sign-in');
+    }
+  }, [isLoaded, isSignedIn, router]);
 
-    const fetchGames = async () => {
+  // Fetch user games
+  useEffect(() => {
+    const fetchUserGames = async () => {
+      if (!isSignedIn || !user) return;
+      
       try {
-        const response = await fetch("/api/getUserGames");
+        setLoading(true);
+        const response = await fetch('/api/getUserGames');
+        const data = await response.json();
+        
         if (response.ok) {
-          const data = await response.json();
           setGames(data.games || []);
         } else {
-          console.error("Failed to fetch games");
+          console.error('Failed to fetch games:', data.error);
         }
       } catch (error) {
-        console.error("Error fetching games:", error);
+        console.error('Error fetching games:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchGames();
-  }, [isLoaded, userLoading]);
+    fetchUserGames();
+  }, [isSignedIn, user]);
+
+  const handlePlayGame = (gameId: number) => {
+    router.push(`/view-game/${gameId}`);
+  };
+
+  const handleEditGame = (gameId: number) => {
+    router.push(`/play/edit/${gameId}`);
+  };
+
+  // Show loading state while checking auth
+  if (!isLoaded || !isSignedIn) {
+    return (
+      <DefaultLayout>
+        <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
+          <div className="inline-block max-w-lg text-center justify-center">
+            <h1 className={title()}>Loading...</h1>
+          </div>
+        </section>
+      </DefaultLayout>
+    );
+  }
 
   return (
     <DefaultLayout>
@@ -78,7 +129,7 @@ export default function Dashboard() {
             </div>
             <div className="flex flex-col items-center">
               <div className="bg-white/20 px-8 py-4 rounded-xl mb-2">
-                <p className="text-4xl font-bold">{dbUser?.credits || 0}</p>
+                <p className="text-4xl font-bold">{userData?.credits || 0}</p>
               </div>
               <p className="text-sm opacity-90">credits available</p>
             </div>
@@ -92,7 +143,7 @@ export default function Dashboard() {
                 size="lg"
                 as={Link}
                 href="/play/create"
-                isDisabled={!dbUser || dbUser.credits <= 0}
+                isDisabled={!userData || userData.credits <= 0}
                 className="font-bold px-6"
               >
                 Create New Game
@@ -112,7 +163,7 @@ export default function Dashboard() {
             </motion.div>
           </div>
           
-          {(!dbUser || dbUser.credits <= 0) && (
+          {(!userData || userData.credits <= 0) && (
             <motion.div 
               className="mt-4 text-yellow-200 text-center"
               initial={{ opacity: 0 }}
@@ -131,7 +182,7 @@ export default function Dashboard() {
             <p className="text-default-500">{games.length} games</p>
           </div>
 
-          {loading || userLoading ? (
+          {loading || isLoading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             </div>
@@ -141,7 +192,7 @@ export default function Dashboard() {
               <h3 className="text-xl font-semibold mb-2">No games yet</h3>
               <p className="text-default-500 mb-6">Create your first AI detective game to get started</p>
               
-              {(!dbUser || dbUser.credits <= 0) ? (
+              {(!userData || userData.credits <= 0) ? (
                 <div className="flex flex-col items-center gap-4">
                   <Button 
                     color="primary" 
