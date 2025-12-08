@@ -32,6 +32,7 @@ export default async function handler(
       mainCharacters,
       gameContent, // AI-generated game content (JSON string)
       generatedImageUrl, // URL of the generated image (kept for reference)
+      firebaseImageUrl, // URL of the image stored in Firebase Storage (permanent)
       imageBase64, // Base64 encoded image to add to images array
       images, // Array of base64 images (if passing multiple)
     } = req.body;
@@ -103,6 +104,7 @@ export default async function handler(
         chapters: chapters,
         possibleEndings: possibleEndings,
         generatedImageUrl: generatedImageUrl || null,
+        firebaseImageUrl: firebaseImageUrl || null, // Store Firebase URL
         images: imagesArray,
         status: "draft",
       })
@@ -121,4 +123,3 @@ export default async function handler(
     });
   }
 }
-

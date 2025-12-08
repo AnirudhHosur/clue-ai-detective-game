@@ -10,7 +10,8 @@ export const games = pgTable("games", {
   plotSeed: text("plot_seed").notNull(), // user's main idea prompt for AI
   difficulty: varchar("difficulty", { length: 20 }).default("medium"), // easy, medium, hard
   imagePrompt: text("image_prompt"), // optional: for AI-generated cover
-  generatedImageUrl: text("generated_image_url"), // URL of the AI-generated game image
+  generatedImageUrl: text("generated_image_url"), // URL of the AI-generated game image (temporary)
+  firebaseImageUrl: text("firebase_image_url"), // URL of the image stored in Firebase Storage (permanent)
   images: jsonb("images").default([]), // Array of base64 encoded images: ["data:image/jpeg;base64,...", ...]
   status: varchar("status", { length: 20 }).default("draft"), // draft, active, finished
   // AI-generated game content fields

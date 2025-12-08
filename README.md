@@ -31,11 +31,24 @@ The Clue AI Detective Game is an innovative platform that empowers users to crea
 - **Replicate** - AI image generation for visual clues
 - **Clerk Authentication** - Secure user authentication and management
 - **PayPal Integration** - Payment processing for credit purchases
+- **Firebase Storage** - Permanent storage for AI-generated images
 
 ### Database & Infrastructure
 - **Drizzle ORM** - TypeScript ORM with Neon/Postgres support
 - **Neon Serverless Postgres** - Scalable database solution
 - **Vercel** - Deployment and hosting platform
+
+## 🔐 Security Considerations
+
+### Firebase Configuration Security
+To protect Firebase credentials:
+- All Firebase configuration is stored in environment variables
+- Firebase operations are performed exclusively on the server-side
+- Never expose Firebase credentials to client-side code
+- The Firebase service layer (`services/firebaseService.ts`) runs only on the server
+
+### Environment Variables
+Sensitive configuration values are stored in `.env.local` and excluded from version control via `.gitignore`.
 
 ## 🚀 Getting Started
 
@@ -73,6 +86,15 @@ DATABASE_URL=your_database_connection_string
 
 # PayPal Integration
 PAYPAL_CLIENT_ID=your_paypal_client_id
+
+# Firebase Configuration
+NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_firebase_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_firebase_measurement_id
 ```
 
 ### Development Commands
@@ -135,32 +157,3 @@ The application implements a credit-based monetization system:
 - View game details including creator information
 - Play games created by other users
 - Responsive grid layout with pagination
-
-### Game Sharing
-- Share created games with unique URLs
-- Public viewing of games without account requirement
-- Creator attribution for all shared games
-
-## 🔧 Deployment
-
-The project is optimized for Vercel deployment:
-1. Connect your GitHub repository to Vercel
-2. Set environment variables in Vercel dashboard
-3. Enable automatic deployments from `main` branch
-4. Configure Neon Postgres connection details as encrypted environment variables
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is released under the [MIT License](LICENSE).
-
-## 🆘 Support
-
-For support, please open an issue on the GitHub repository or contact the development team.

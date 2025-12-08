@@ -21,6 +21,7 @@ interface Game {
   difficulty: string;
   imagePrompt: string;
   generatedImageUrl: string | null;
+  firebaseImageUrl: string | null; // Add Firebase image URL
   images: string[]; // base64 encoded images
   status: string;
   premise: string;
@@ -239,10 +240,10 @@ export default function DashboardPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  {game.generatedImageUrl ? (
+                  {(game.firebaseImageUrl || game.generatedImageUrl) ? (
                     <div className="h-48 bg-gray-200 dark:bg-gray-700 relative">
                       <img 
-                        src={game.generatedImageUrl} 
+                        src={game.firebaseImageUrl || game.generatedImageUrl || ""} 
                         alt={game.title} 
                         className="w-full h-full object-cover"
                       />

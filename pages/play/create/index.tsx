@@ -152,6 +152,7 @@ export default function CreateGame({ prompt }: CreateGameProps) {
       
       // Generate image using the prompt
       let generatedImageUrl = null;
+      let firebaseImageUrl = null;
       let imageBase64 = null;
       try {
         const imageResponse = await fetch("/api/generateImage", {
@@ -162,6 +163,7 @@ export default function CreateGame({ prompt }: CreateGameProps) {
         const imageData = await imageResponse.json();
         if (imageResponse.ok && imageData.imageUrl) {
           generatedImageUrl = imageData.imageUrl;
+          firebaseImageUrl = imageData.firebaseImageUrl || null;
           imageBase64 = imageData.imageBase64 || null;
         } else {
           console.warn("Image generation failed:", imageData.error);
@@ -172,7 +174,7 @@ export default function CreateGame({ prompt }: CreateGameProps) {
       }
       
       // Save game to database with image URL and base64
-      const saveResult = await saveGameinDB(data.result, generatedImageUrl, imageBase64);
+      const saveResult = await saveGameinDB(data.result, generatedImageUrl, imageBase64, firebaseImageUrl);
       
       // Deduct one credit from user
       await deductCredit();
@@ -196,7 +198,7 @@ export default function CreateGame({ prompt }: CreateGameProps) {
     }
   };
 
-  const saveGameinDB = async (gameContent: string, generatedImageUrl: string | null = null, imageBase64: string | null = null) => {
+  const saveGameinDB = async (gameContent: string, generatedImageUrl: string | null = null, imageBase64: string | null = null, firebaseImageUrl: string | null = null) => {
     const response = await fetch("/api/saveGame", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -209,6 +211,7 @@ export default function CreateGame({ prompt }: CreateGameProps) {
         mainCharacters,
         gameContent, // AI-generated game content
         generatedImageUrl, // URL of the generated image (for reference, expires after 2 hours)
+        firebaseImageUrl, // URL of the image stored in Firebase Storage (permanent)
         imageBase64, // Base64 encoded image to store permanently
       }),
     });

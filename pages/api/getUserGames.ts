@@ -24,7 +24,26 @@ export default async function handler(
 
     // Fetch games from database for this user
     const userGames = await db
-      .select()
+      .select({
+        id: games.id,
+        userId: games.userId,
+        title: games.title,
+        genre: games.genre,
+        tone: games.tone,
+        mainCharacters: games.mainCharacters,
+        plotSeed: games.plotSeed,
+        difficulty: games.difficulty,
+        imagePrompt: games.imagePrompt,
+        generatedImageUrl: games.generatedImageUrl,
+        firebaseImageUrl: games.firebaseImageUrl, // Include Firebase URL
+        images: games.images,
+        status: games.status,
+        premise: games.premise,
+        setting: games.setting,
+        chapters: games.chapters,
+        possibleEndings: games.possibleEndings,
+        createdAt: games.createdAt,
+      })
       .from(games)
       .where(eq(games.userId, userId))
       .orderBy(desc(games.createdAt));

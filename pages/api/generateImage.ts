@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import Replicate from "replicate";
 import dotenv from "dotenv";
 import path from "path";
+import { FirebaseService } from "@/services/firebaseService";
 
 // Load environment variables explicitly
 // Next.js should load .env.local automatically, but this ensures it works
@@ -78,6 +79,15 @@ export default async function generateImage(
       return;
     }
 
+    // Upload image to Firebase Storage
+    let firebaseImageUrl: string | null = null;
+    try {
+      firebaseImageUrl = await FirebaseService.uploadImageFromUrl(imageUrl);
+    } catch (uploadError: any) {
+      console.error("Error uploading image to Firebase Storage:", uploadError);
+      // Continue with just the Replicate URL if Firebase upload fails
+    }
+
     // Fetch the image from the URL and convert to base64
     try {
       const imageResponse = await fetch(imageUrl);
@@ -98,13 +108,15 @@ export default async function generateImage(
 
       res.status(200).json({ 
         imageUrl, // Keep URL for reference
+        firebaseImageUrl, // Firebase Storage URL (permanent)
         imageBase64: base64DataUrl // Return base64 data URL
       });
     } catch (fetchError: any) {
       console.error("Error fetching and converting image to base64:", fetchError);
-      // Return URL even if base64 conversion fails
+      // Return URLs even if base64 conversion fails
       res.status(200).json({ 
         imageUrl,
+        firebaseImageUrl,
         imageBase64: null,
         error: fetchError.message || "Failed to convert image to base64"
       });

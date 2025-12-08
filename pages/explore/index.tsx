@@ -21,7 +21,7 @@ interface Game {
   genre: string;
   tone: string;
   difficulty: string;
-  imageUrl: string | null;
+  imageUrl: string | null; // This will now be the Firebase URL
   createdAt: Date;
   username: string | null;
   userEmail: string;
@@ -196,6 +196,7 @@ export default function ExplorePage() {
                             <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16" />
                           </div>
                         )}
+
                         <span className={`absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded-full capitalize ${getDifficultyColor(game.difficulty)}`}>
                           {game.difficulty}
                         </span>

@@ -37,7 +37,26 @@ export default async function handler(
 
     // Fetch game from database
     const [game] = await db
-      .select()
+      .select({
+        id: games.id,
+        userId: games.userId,
+        title: games.title,
+        genre: games.genre,
+        tone: games.tone,
+        mainCharacters: games.mainCharacters,
+        plotSeed: games.plotSeed,
+        difficulty: games.difficulty,
+        imagePrompt: games.imagePrompt,
+        generatedImageUrl: games.generatedImageUrl,
+        firebaseImageUrl: games.firebaseImageUrl, // Include Firebase URL
+        images: games.images,
+        status: games.status,
+        premise: games.premise,
+        setting: games.setting,
+        chapters: games.chapters,
+        possibleEndings: games.possibleEndings,
+        createdAt: games.createdAt,
+      })
       .from(games)
       .where(eq(games.id, gameId))
       .limit(1);
@@ -61,4 +80,3 @@ export default async function handler(
     });
   }
 }
-

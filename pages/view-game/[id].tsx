@@ -51,6 +51,7 @@ interface GameData {
     moral: string;
   }>;
   images: string[];
+  firebaseImageUrl: string | null; // Add Firebase image URL
 }
 
 type StepType = "premise" | "setting" | "characters" | "chapter" | "ending";
@@ -273,7 +274,7 @@ export default function ViewGamePage() {
                 genre={game.genre}
                 tone={game.tone}
                 difficulty={game.difficulty}
-                imageUrl={game.images && game.images.length > 0 ? game.images[0] : undefined}
+                imageUrl={game.firebaseImageUrl || (game.images && game.images.length > 0 ? game.images[0] : undefined)}
               />
             )}
 

@@ -8,6 +8,27 @@
       "when": 1762891880285,
       "tag": "0000_fearless_tiger_shark",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1762891880286,
+      "tag": "0001_alter_user_id_to_text",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1762891880287,
+      "tag": "0002_add_firebase_image_url",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1762891880288,
+      "tag": "0003_add_firebase_image_url",
+      "breakpoints": true
     }
   ]
 }

@@ -23,7 +23,7 @@ export default async function handler(
         genre: games.genre,
         tone: games.tone,
         difficulty: games.difficulty,
-        imageUrl: games.generatedImageUrl,
+        imageUrl: games.firebaseImageUrl, // Use Firebase URL instead of temporary Replicate URL
         createdAt: games.createdAt,
         username: users.username,
         userEmail: users.email,

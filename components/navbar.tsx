@@ -54,16 +54,32 @@ export const Navbar = () => {
               <NavbarItem key={item.href}>
                 {item.label === "Create Game" ? (
                   // Special handling for Create Game link to ensure authentication
-                  <SignInButton mode="redirect" fallbackRedirectUrl={item.href}>
-                    <span
-                      className={clsx(
-                        linkStyles({ color: "foreground" }),
-                        "data-[active=true]:text-primary data-[active=true]:font-medium cursor-pointer"
-                      )}
-                    >
-                      {item.label}
-                    </span>
-                  </SignInButton>
+                  // But allow signed-in users to proceed directly to the page
+                  <>
+                    <SignedIn>
+                      <NextLink
+                        className={clsx(
+                          linkStyles({ color: "foreground" }),
+                          "data-[active=true]:text-primary data-[active=true]:font-medium"
+                        )}
+                        href={item.href}
+                      >
+                        {item.label}
+                      </NextLink>
+                    </SignedIn>
+                    <SignedOut>
+                      <SignInButton mode="modal" fallbackRedirectUrl={item.href}>
+                        <span
+                          className={clsx(
+                            linkStyles({ color: "foreground" }),
+                            "data-[active=true]:text-primary data-[active=true]:font-medium cursor-pointer"
+                          )}
+                        >
+                          {item.label}
+                        </span>
+                      </SignInButton>
+                    </SignedOut>
+                  </>
                 ) : (
                   <NextLink
                     className={clsx(
@@ -97,7 +113,6 @@ export const Navbar = () => {
                 <Link href="/dashboard">
                   <Button
                     className="text-sm font-normal text-default-600 bg-default-100"
-                    //href={siteConfig.links.sponsor}
                     startContent={<HeartFilledIcon className="text-danger" />}
                     variant="flat"
                   >
@@ -107,10 +122,9 @@ export const Navbar = () => {
               </SignedIn>
 
               <SignedOut>
-                <SignInButton mode="redirect">
+                <SignInButton mode="modal">
                   <Button
                     className="text-sm font-normal text-default-600 bg-default-100"
-                    //href={siteConfig.links.sponsor}
                     startContent={<HeartFilledIcon className="text-danger" />}
                     variant="flat"
                   >
@@ -118,7 +132,9 @@ export const Navbar = () => {
                   </Button>
                 </SignInButton>
               </SignedOut>
-              <UserButton />
+              <div className="ml-3 mt-2">
+                <UserButton />
+              </div>
             </>
           ) : (
             // placeholder markup rendered on the server and during initial hydration
@@ -154,6 +170,25 @@ export const Navbar = () => {
               </Link>
             </NavbarMenuItem>
           ))}
+          {/* Add Create Game link to mobile menu with proper auth handling */}
+          <NavbarMenuItem>
+            <SignedIn>
+              <Link
+                color="foreground"
+                href="/play/create"
+                size="lg"
+              >
+                Create Game
+              </Link>
+            </SignedIn>
+            <SignedOut>
+              <SignInButton mode="modal" fallbackRedirectUrl="/play/create">
+                <span className="text-foreground w-full text-left">
+                  Create Game
+                </span>
+              </SignInButton>
+            </SignedOut>
+          </NavbarMenuItem>
         </div>
       </NavbarMenu>
     </HeroUINavbar>
