@@ -30,11 +30,11 @@ export default async function handler(
       difficulty,
       imagePrompt,
       mainCharacters,
-      gameContent, // AI-generated game content (JSON string)
-      generatedImageUrl, // URL of the generated image (kept for reference)
-      firebaseImageUrl, // URL of the image stored in Firebase Storage (permanent)
-      imageBase64, // Base64 encoded image to add to images array
-      images, // Array of base64 images (if passing multiple)
+      gameContent,
+      generatedImageUrl,
+      firebaseImageUrl,
+      imageBase64,
+      images,
     } = req.body;
 
     // Validate required fields
@@ -42,9 +42,6 @@ export default async function handler(
       res.status(400).json({ error: "Missing required fields" });
       return;
     }
-
-    // Generate UUID for gameId
-    const gameId = uuidv4();
 
     // Prepare main characters data
     const charactersData = Array.isArray(mainCharacters)
@@ -57,7 +54,6 @@ export default async function handler(
     let parsedGameData: any = {};
     if (gameContent) {
       try {
-        // Remove markdown code blocks if present
         let cleanedContent = gameContent.trim();
         if (cleanedContent.startsWith("```json")) {
           cleanedContent = cleanedContent.replace(/^```json\s*/, "").replace(/\s*```$/, "");
@@ -67,7 +63,6 @@ export default async function handler(
         
         parsedGameData = JSON.parse(cleanedContent);
       } catch (parseError) {
-        console.error("Error parsing game content:", parseError);
         // Continue without parsed data if parsing fails
       }
     }
@@ -78,12 +73,11 @@ export default async function handler(
     const chapters = Array.isArray(parsedGameData.chapters) ? parsedGameData.chapters : [];
     const possibleEndings = Array.isArray(parsedGameData.possibleEndings) ? parsedGameData.possibleEndings : [];
 
-    // Prepare images array - add new base64 image if provided
+    // Prepare images array
     let imagesArray: string[] = [];
     if (Array.isArray(images)) {
       imagesArray = images;
     } else if (imageBase64 && typeof imageBase64 === "string") {
-      // If a single base64 image is provided, add it to the array
       imagesArray = [imageBase64];
     }
 
@@ -104,7 +98,7 @@ export default async function handler(
         chapters: chapters,
         possibleEndings: possibleEndings,
         generatedImageUrl: generatedImageUrl || null,
-        firebaseImageUrl: firebaseImageUrl || null, // Store Firebase URL
+        firebaseImageUrl: firebaseImageUrl || null,
         images: imagesArray,
         status: "draft",
       })
@@ -112,12 +106,11 @@ export default async function handler(
 
     res.status(200).json({
       success: true,
-      gameId: gameId,
+      gameId: uuidv4(),
       dbId: insertedGame.id,
       game: insertedGame,
     });
   } catch (error: any) {
-    console.error("Error saving game to database:", error);
     res.status(500).json({
       error: error.message || "Failed to save game to database",
     });

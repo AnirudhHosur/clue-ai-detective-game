@@ -126,7 +126,7 @@ export default function CreateGame({ prompt }: CreateGameProps) {
       try {
         // Remove markdown code blocks if present
         let cleanedContent = data.result.trim();
-        if (cleanedContent.startsWith("```json")) {
+        if (cleanedContent.startsWith("``json")) {
           cleanedContent = cleanedContent.replace(/^```json\s*/, "").replace(/\s*```$/, "");
         } else if (cleanedContent.startsWith("```")) {
           cleanedContent = cleanedContent.replace(/^```\s*/, "").replace(/\s*```$/, "");
@@ -150,10 +150,32 @@ export default function CreateGame({ prompt }: CreateGameProps) {
         imagePromptText = `A ${tone.toLowerCase()} ${genre.toLowerCase()} detective mystery scene. ${plotSeed.substring(0, 200)}. Atmospheric, cinematic, detailed, mysterious.`;
       }
       
+      // Save game to database FIRST (without waiting for image processing)
+      const saveResult = await saveGameinDB(data.result, null, null, null);
+      
+      // Now process image asynchronously (don't wait for it to complete)
+      processImageAsync(imagePromptText, saveResult.dbId);
+      
+      // Deduct one credit from user
+      await deductCredit();
+      
+      // Redirect immediately after saving game data
+      if (saveResult?.dbId) {
+        router.push(`/view-game/${saveResult.dbId}`);
+      }
+    } catch (error) {
+      console.error("Error generating game:", error);
+      setLoading(false);
+      // Optional: Show error message to user
+    }
+  };
+
+  const processImageAsync = async (imagePromptText: string, gameId: number) => {
+    try {
       // Generate image using the prompt
       let generatedImageUrl = null;
-      let firebaseImageUrl = null;
       let imageBase64 = null;
+      
       try {
         const imageResponse = await fetch("/api/generateImage", {
           method: "POST",
@@ -163,38 +185,63 @@ export default function CreateGame({ prompt }: CreateGameProps) {
         const imageData = await imageResponse.json();
         if (imageResponse.ok && imageData.imageUrl) {
           generatedImageUrl = imageData.imageUrl;
-          firebaseImageUrl = imageData.firebaseImageUrl || null;
           imageBase64 = imageData.imageBase64 || null;
-        } else {
-          console.warn("Image generation failed:", imageData.error);
         }
       } catch (imageError) {
-        console.error("Error generating image:", imageError);
         // Continue without image if generation fails
       }
       
-      // Save game to database with image URL and base64
-      const saveResult = await saveGameinDB(data.result, generatedImageUrl, imageBase64, firebaseImageUrl);
-      
-      // Deduct one credit from user
-      await deductCredit();
-      
-      // Log success at the end
+      // If we have an image URL, upload it to Firebase
+      let firebaseImageUrl = null;
       if (generatedImageUrl) {
-        console.log("Game created successfully with image");
+        try {
+          const firebaseResponse = await fetch("/api/uploadImageToFirebase", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ imageUrl: generatedImageUrl }),
+          });
+          const firebaseData = await firebaseResponse.json();
+          if (firebaseResponse.ok && firebaseData.firebaseImageUrl) {
+            firebaseImageUrl = firebaseData.firebaseImageUrl;
+          }
+        } catch (firebaseError) {
+          // Continue without Firebase URL if upload fails
+        }
       }
       
-      // Close modal after successful save
-      setLoading(false);
-      
-      // Redirect to view game page
-      if (saveResult?.dbId) {
-        router.push(`/view-game/${saveResult.dbId}`);
+      // Update game in database with image URLs
+      if (generatedImageUrl || firebaseImageUrl || imageBase64) {
+        await updateGameWithImageData(gameId, generatedImageUrl, firebaseImageUrl, imageBase64);
       }
     } catch (error) {
-      console.error("Error generating game:", error);
-      setLoading(false);
-      // Optional: Show error message to user
+      // Silently handle errors to avoid breaking the user experience
+    }
+  };
+
+  const updateGameWithImageData = async (
+    gameId: number, 
+    generatedImageUrl: string | null, 
+    firebaseImageUrl: string | null, 
+    imageBase64: string | null
+  ) => {
+    try {
+      const response = await fetch("/api/updateGameImages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gameId,
+          generatedImageUrl,
+          firebaseImageUrl,
+          imageBase64,
+        }),
+      });
+      
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update game with image data");
+      }
+    } catch (error) {
+      // Silently handle errors to avoid breaking the user experience
     }
   };
 
@@ -209,10 +256,10 @@ export default function CreateGame({ prompt }: CreateGameProps) {
         plotSeed,
         difficulty,
         mainCharacters,
-        gameContent, // AI-generated game content
-        generatedImageUrl, // URL of the generated image (for reference, expires after 2 hours)
-        firebaseImageUrl, // URL of the image stored in Firebase Storage (permanent)
-        imageBase64, // Base64 encoded image to store permanently
+        gameContent,
+        generatedImageUrl,
+        firebaseImageUrl,
+        imageBase64,
       }),
     });
     const data = await response.json();
@@ -236,11 +283,9 @@ export default function CreateGame({ prompt }: CreateGameProps) {
       if (response.ok) {
         // Refresh user context to reflect new credit balance
         await refreshUser();
-      } else {
-        console.error("Failed to update credits");
       }
     } catch (error) {
-      console.error("Error deducting credits:", error);
+      // Silently handle errors to avoid breaking the user experience
     }
   };
 

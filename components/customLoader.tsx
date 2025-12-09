@@ -34,6 +34,7 @@ function CustomLoader({ isLoading }: CustomLoaderProps) {
           <p className="text-gray-600 dark:text-gray-300 text-center">
             Sit tight while we create an amazing mystery experience for you!
           </p>
+          <h4>Estimated time: 40 seconds</h4>
           <div className="relative w-64 h-64">
             <Image
               src="/loader.gif"

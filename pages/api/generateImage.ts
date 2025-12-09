@@ -2,10 +2,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import Replicate from "replicate";
 import dotenv from "dotenv";
 import path from "path";
-import { FirebaseService } from "@/services/firebaseService";
 
 // Load environment variables explicitly
-// Next.js should load .env.local automatically, but this ensures it works
 dotenv.config({ path: path.join(process.cwd(), ".env.local") });
 
 export default async function generateImage(
@@ -25,11 +23,10 @@ export default async function generateImage(
       return;
     }
 
-    // Check for API key first - support both REPLICATE_API_KEY and REPLICATE_API_TOKEN
+    // Check for API key
     const apiKey = process.env.REPLICATE_API_KEY || process.env.REPLICATE_API_TOKEN;
     
     if (!apiKey) {
-      console.error("REPLICATE_API_KEY or REPLICATE_API_TOKEN is not set in environment variables");
       res.status(500).json({ 
         error: "REPLICATE_API_KEY or REPLICATE_API_TOKEN is not configured. Please check your .env.local file."
       });
@@ -49,18 +46,25 @@ export default async function generateImage(
       safety_filter_level: "block_medium_and_above"
     };
 
-    const output = await replicate.run("google/imagen-4", { input });
+    // Add timeout to Replicate call
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+    
+    const output = await replicate.run("google/imagen-4", { 
+      input,
+      signal: controller.signal 
+    });
+    
+    clearTimeout(timeoutId);
 
-    // Extract the image URL from the output using .url() method
+    // Extract the image URL from the output
     let imageUrl: string;
     
-    // Handle the output which has a .url() method
     if (output && typeof (output as any).url === "function") {
       imageUrl = (output as any).url();
     } else if (typeof output === "string") {
       imageUrl = output;
     } else if (Array.isArray(output) && output.length > 0) {
-      // Fallback: if it's an array, try to get the first element
       const firstItem = output[0];
       if (typeof firstItem === "string") {
         imageUrl = firstItem;
@@ -70,7 +74,6 @@ export default async function generateImage(
         imageUrl = (firstItem as any)?.url || "";
       }
     } else {
-      // Handle case where output might be an object with a URL property
       imageUrl = (output as any)?.url || "";
     }
 
@@ -79,50 +82,33 @@ export default async function generateImage(
       return;
     }
 
-    // Upload image to Firebase Storage
-    let firebaseImageUrl: string | null = null;
-    try {
-      firebaseImageUrl = await FirebaseService.uploadImageFromUrl(imageUrl);
-    } catch (uploadError: any) {
-      console.error("Error uploading image to Firebase Storage:", uploadError);
-      // Continue with just the Replicate URL if Firebase upload fails
-    }
-
     // Fetch the image from the URL and convert to base64
-    try {
-      const imageResponse = await fetch(imageUrl);
-      if (!imageResponse.ok) {
-        throw new Error(`Failed to fetch image: ${imageResponse.statusText}`);
-      }
-
-      // Get the image as a buffer
-      const arrayBuffer = await imageResponse.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-
-      // Determine content type from response or default to jpeg
-      const contentType = imageResponse.headers.get("content-type") || "image/jpeg";
-      
-      // Convert to base64
-      const base64Image = buffer.toString("base64");
-      const base64DataUrl = `data:${contentType};base64,${base64Image}`;
-
-      res.status(200).json({ 
-        imageUrl, // Keep URL for reference
-        firebaseImageUrl, // Firebase Storage URL (permanent)
-        imageBase64: base64DataUrl // Return base64 data URL
-      });
-    } catch (fetchError: any) {
-      console.error("Error fetching and converting image to base64:", fetchError);
-      // Return URLs even if base64 conversion fails
-      res.status(200).json({ 
-        imageUrl,
-        firebaseImageUrl,
-        imageBase64: null,
-        error: fetchError.message || "Failed to convert image to base64"
-      });
+    const controller2 = new AbortController();
+    const timeoutId2 = setTimeout(() => controller2.abort(), 30000); // 30 second timeout
+    
+    const imageResponse = await fetch(imageUrl, { signal: controller2.signal });
+    clearTimeout(timeoutId2);
+    
+    if (!imageResponse.ok) {
+      throw new Error(`Failed to fetch image: ${imageResponse.statusText}`);
     }
+
+    // Get the image as a buffer
+    const arrayBuffer = await imageResponse.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Determine content type from response or default to jpeg
+    const contentType = imageResponse.headers.get("content-type") || "image/jpeg";
+    
+    // Convert to base64
+    const base64Image = buffer.toString("base64");
+    const base64DataUrl = `data:${contentType};base64,${base64Image}`;
+
+    res.status(200).json({ 
+      imageUrl,
+      imageBase64: base64DataUrl
+    });
   } catch (error: any) {
-    console.error("Error generating image:", error);
     res.status(500).json({
       error: error.message || "Failed to generate image",
     });
