@@ -126,10 +126,13 @@ export default function CreateGame({ prompt }: CreateGameProps) {
       try {
         // Remove markdown code blocks if present
         let cleanedContent = data.result.trim();
-        if (cleanedContent.startsWith("``json")) {
+        if (cleanedContent.startsWith("```json")) {
           cleanedContent = cleanedContent.replace(/^```json\s*/, "").replace(/\s*```$/, "");
         } else if (cleanedContent.startsWith("```")) {
           cleanedContent = cleanedContent.replace(/^```\s*/, "").replace(/\s*```$/, "");
+        } else if (cleanedContent.startsWith("json")) {
+          // Handle case where AI returns "json{" instead of valid JSON
+          cleanedContent = cleanedContent.replace(/^json\s*/, "");
         }
         
         parsedGameData = JSON.parse(cleanedContent);
@@ -163,10 +166,11 @@ export default function CreateGame({ prompt }: CreateGameProps) {
       if (saveResult?.dbId) {
         router.push(`/view-game/${saveResult.dbId}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating game:", error);
       setLoading(false);
-      // Optional: Show error message to user
+      // Show error message to user
+      alert(`Error generating game: ${error.message || "Unknown error"}`);
     }
   };
 
@@ -188,6 +192,7 @@ export default function CreateGame({ prompt }: CreateGameProps) {
           imageBase64 = imageData.imageBase64 || null;
         }
       } catch (imageError) {
+        console.error("Error generating image:", imageError);
         // Continue without image if generation fails
       }
       
@@ -205,6 +210,7 @@ export default function CreateGame({ prompt }: CreateGameProps) {
             firebaseImageUrl = firebaseData.firebaseImageUrl;
           }
         } catch (firebaseError) {
+          console.error("Error uploading image to Firebase:", firebaseError);
           // Continue without Firebase URL if upload fails
         }
       }

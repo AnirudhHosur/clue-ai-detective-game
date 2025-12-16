@@ -24,11 +24,12 @@ export default async function generateImage(
     }
 
     // Check for API key
-    const apiKey = process.env.REPLICATE_API_KEY || process.env.REPLICATE_API_TOKEN;
+    const apiKey = process.env.REPLICATE_API_TOKEN || process.env.REPLICATE_API_KEY;
     
     if (!apiKey) {
       res.status(500).json({ 
-        error: "REPLICATE_API_KEY or REPLICATE_API_TOKEN is not configured. Please check your .env.local file."
+        error: "REPLICATE_API_TOKEN or REPLICATE_API_KEY is not configured. Please check your .env.local file.",
+        details: "Copy .env.local.example to .env.local and add your actual API keys."
       });
       return;
     }

@@ -16,6 +16,10 @@ The Clue AI Detective Game is an innovative platform that empowers users to crea
 - **Credit-Based System**: Monetization through a credit system with PayPal integration
 - **Responsive Design**: Works seamlessly across devices with light/dark mode support
 - **Interactive Dashboard**: Central hub for managing created games and credits
+- **Interactive Conversations**: Engage in back-and-forth dialogue with AI to shape your mystery
+- **Dynamic Story Evolution**: AI remembers context and adapts the narrative based on your choices
+- **Multi-Step Gameplay**: Experience 4 distinct conversation phases leading to a meaningful conclusion
+- **Life Lessons**: Conclude each game with a thoughtful moral or life lesson
 
 ## 🛠️ Tech Stack
 
@@ -141,6 +145,18 @@ clue-ai-detective-game-app/
 ├── services/            # Business logic and service integrations
 └── styles/              # Global styles
 ```
+
+## 💡 Interactive Gameplay
+
+The latest version introduces an innovative interactive gameplay system where users engage in dynamic conversations with the AI:
+
+1. **Initial Setup**: Create your mystery with characters, setting, and premise
+2. **Conversation Phase 1**: AI presents the opening narrative and initial choices
+3. **Conversation Phase 2**: Based on your selection, AI evolves the story with new options
+4. **Conversation Phase 3**: Continue shaping the mystery through your decisions
+5. **Conversation Phase 4**: Reach the climax and discover the outcome with a life lesson
+
+Each choice influences the narrative direction, creating a unique experience every time you play.
 
 ## 💳 Payment System
 
